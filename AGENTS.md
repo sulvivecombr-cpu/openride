@@ -59,3 +59,10 @@ domain tables and made `app_config` keyed by `(operator_id, key)`. Any new rows
 added to `infra/supabase/seed.sql` must stamp `operator_id` (default demo
 operator `00000000-0000-0000-0000-000000000001`), or they will be invisible to
 operator-scoped staff under RLS (and `app_config` inserts will fail outright).
+
+## Base44 sandbox setup
+
+- `docker-compose.base44.yml` replaces the Supabase CLI stack: supabase/postgres + gotrue + postgrest behind an nginx gateway (`infra/base44/nginx.conf`, port 54321, CORS handled there), plus the Next.js admin on port 3000. Edge functions, Realtime and Storage are NOT run.
+- Boot order: db -> dbinit (role passwords) -> auth (creates `auth` schema) -> migrate (applies `infra/supabase/migrations` + seed, tracked in `public._base44_migrations`) -> rest/gateway -> admin. First `up` can fail on a slow auth healthcheck; just re-run `up -d`.
+- JWT secret/anon key in the compose are the public Supabase demo-style local values, not secrets.
+- Login: `admin@demo.openride` / `demo-password-change-me`, lands on `/dashboard`.
